@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Mic, Wind, Sparkles, Heart, RotateCcw, Volume2, VolumeX } from 'lucide-react'
+import { Mic, Wind, Sparkles, Heart, RotateCcw, Volume2, VolumeX, Wand2 } from 'lucide-react'
 import { grandCelebration } from '../lib/celebrate'
-import { localAudioUrl, musicBoxSynth } from '../lib/birthdayAudio'
+import { localAudioUrl, musicBoxSynth, playFairyChime } from '../lib/birthdayAudio'
 
 // State constants for clean state-driven animation
 const STATES = {
@@ -24,6 +24,50 @@ const CANDLE_CONFIG = [
   { id: 4, x: 31,  y: 1,  h: 58, color: 'from-teal-200 to-emerald-400', stripe: '#FFD700', extinguishAt: 4.6 },
   { id: 5, x: 62,  y: 5,  h: 54, color: 'from-violet-300 to-purple-400', stripe: '#FFF', extinguishAt: 4.3 },
   { id: 6, x: 92,  y: 10, h: 48, color: 'from-pink-300 to-rose-400', stripe: '#FFD700', extinguishAt: 5.4 },
+]
+
+// 18 Richly Styled Celebration Balloons
+const CELEBRATION_BALLOONS = [
+  { id: 1,  left: '4%',  dur: '10s',  delay: '0s',   color: '#FF9EC3', size: 44, heart: true,  sway: 35, rot: 12 },
+  { id: 2,  left: '10%', dur: '13s',  delay: '1.5s', color: '#E4DAFF', size: 48, heart: false, sway: -25, rot: -8 },
+  { id: 3,  left: '17%', dur: '9s',   delay: '3.2s', color: '#FFD700', size: 40, heart: false, sway: 30, rot: 10 },
+  { id: 4,  left: '24%', dur: '12s',  delay: '0.8s', color: '#FF8FB1', size: 52, heart: true,  sway: -30, rot: -10 },
+  { id: 5,  left: '31%', dur: '14s',  delay: '4.5s', color: '#FFF2B2', size: 38, heart: false, sway: 20, rot: 6 },
+  { id: 6,  left: '38%', dur: '11s',  delay: '2.1s', color: '#D4B8FF', size: 46, heart: true,  sway: -22, rot: -7 },
+  { id: 7,  left: '52%', dur: '10s',  delay: '3.8s', color: '#FFDCC6', size: 42, heart: false, sway: 26, rot: 9 },
+  { id: 8,  left: '59%', dur: '13s',  delay: '1.1s', color: '#FF80AB', size: 50, heart: true,  sway: -35, rot: -12 },
+  { id: 9,  left: '67%', dur: '9.5s', delay: '4.2s', color: '#E1BEE7', size: 40, heart: false, sway: 28, rot: 8 },
+  { id: 10, left: '74%', dur: '12s',  delay: '0.5s', color: '#FFD700', size: 48, heart: false, sway: -24, rot: -9 },
+  { id: 11, left: '81%', dur: '11s',  delay: '2.8s', color: '#FFB2D0', size: 54, heart: true,  sway: 32, rot: 11 },
+  { id: 12, left: '88%', dur: '14s',  delay: '1.8s', color: '#C5CAE9', size: 44, heart: false, sway: -28, rot: -8 },
+  { id: 13, left: '94%', dur: '10.5s',delay: '3.5s', color: '#FF8A80', size: 46, heart: true,  sway: 25, rot: 10 },
+  { id: 14, left: '7%',  dur: '11.5s',delay: '5.2s', color: '#FFE082', size: 42, heart: false, sway: -20, rot: -6 },
+  { id: 15, left: '21%', dur: '13.5s',delay: '6.1s', color: '#F8BBD0', size: 48, heart: true,  sway: 30, rot: 12 },
+  { id: 16, left: '62%', dur: '10s',  delay: '5.8s', color: '#E0F7FA', size: 40, heart: false, sway: -32, rot: -10 },
+  { id: 17, left: '79%', dur: '12.5s',delay: '6.5s', color: '#FFD54F', size: 46, heart: true,  sway: 22, rot: 7 },
+  { id: 18, left: '92%', dur: '11s',  delay: '7.2s', color: '#EA80FC', size: 44, heart: false, sway: -25, rot: -9 },
+]
+
+// 24 Magical Floating Fairydust Sparkles & Stars
+const FAIRY_SPARKLES = [
+  { id: 1,  left: '8%',  top: '25%', size: 24, dur: '3.8s', delay: '0s',   symbol: '✨', color: '#FFD700' },
+  { id: 2,  left: '16%', top: '45%', size: 18, dur: '4.5s', delay: '1.2s', symbol: '⭐', color: '#FFAEC5' },
+  { id: 3,  left: '23%', top: '15%', size: 28, dur: '5.2s', delay: '2.4s', symbol: '🌟', color: '#FFF8F3' },
+  { id: 4,  left: '30%', top: '35%', size: 16, dur: '4.0s', delay: '0.6s', symbol: '✨', color: '#FFD700' },
+  { id: 5,  left: '37%', top: '55%', size: 20, dur: '3.5s', delay: '1.8s', symbol: '💕', color: '#FF8FB1' },
+  { id: 6,  left: '45%', top: '20%', size: 26, dur: '4.8s', delay: '3.1s', symbol: '✨', color: '#FFF' },
+  { id: 7,  left: '55%', top: '22%', size: 22, dur: '4.2s', delay: '0.9s', symbol: '🌟', color: '#FFD700' },
+  { id: 8,  left: '63%', top: '48%', size: 18, dur: '5.0s', delay: '2.1s', symbol: '✨', color: '#C9B6FF' },
+  { id: 9,  left: '70%', top: '18%', size: 24, dur: '3.9s', delay: '1.5s', symbol: '⭐', color: '#FFD700' },
+  { id: 10, left: '78%', top: '40%', size: 20, dur: '4.6s', delay: '2.8s', symbol: '💖', color: '#FF8FB1' },
+  { id: 11, left: '86%', top: '28%', size: 26, dur: '4.1s', delay: '0.3s', symbol: '✨', color: '#FFF' },
+  { id: 12, left: '92%', top: '52%', size: 18, dur: '5.4s', delay: '1.9s', symbol: '🌟', color: '#FFD700' },
+  { id: 13, left: '12%', top: '65%', size: 22, dur: '4.4s', delay: '3.5s', symbol: '✨', color: '#FFB8CE' },
+  { id: 14, left: '28%', top: '70%', size: 20, dur: '3.7s', delay: '0.7s', symbol: '⭐', color: '#FFD700' },
+  { id: 15, left: '48%', top: '68%', size: 24, dur: '4.9s', delay: '2.2s', symbol: '✨', color: '#FFF8F3' },
+  { id: 16, left: '68%', top: '72%', size: 18, dur: '4.3s', delay: '1.4s', symbol: '💕', color: '#FF8FB1' },
+  { id: 17, left: '84%', top: '65%', size: 24, dur: '5.1s', delay: '3.0s', symbol: '🌟', color: '#FFD700' },
+  { id: 18, left: '50%', top: '10%', size: 30, dur: '4.0s', delay: '0.5s', symbol: '✨', color: '#FFD700' },
 ]
 
 export default function BirthdayCake() {
@@ -100,12 +144,18 @@ export default function BirthdayCake() {
     setAudioPlaying(false)
   }, [])
 
+  // Trigger Magic Sparks & Chimes anytime
+  const castMagicSparkles = useCallback(() => {
+    playFairyChime()
+    grandCelebration()
+  }, [])
+
   // Start the 5-6 second candle extinguishing sequence
   const startExtinguishSequence = useCallback(() => {
     stopMicrophone()
     setAnimState(STATES.BLOW_DETECTED)
 
-    // Tiny 150ms delay for the initial blow reaction
+    // Tiny 150ms delay for initial blow reaction
     setTimeout(() => {
       setAnimState(STATES.CANDLE_EXTINGUISHING)
       startTimeRef.current = performance.now()
@@ -117,11 +167,14 @@ export default function BirthdayCake() {
         if (elapsed < 5.6) {
           animFrameRef.current = requestAnimationFrame(tick)
         } else {
-          // 5.6s - 6.0s: All candles completely extinguished
+          // 5.6s - 6.0s: All candles completely extinguished!
           setCandlesLit(false)
           setAnimState(STATES.CANDLES_OUT)
 
-          // 0.4s suspense anticipation pause before celebration
+          // Play magical fairy chime sweep right when candles go out!
+          playFairyChime()
+
+          // 0.4s suspense anticipation pause before grand celebration
           setTimeout(() => {
             setAnimState(STATES.CELEBRATION)
             playBirthdayMusic()
@@ -350,32 +403,41 @@ export default function BirthdayCake() {
         className="absolute inset-0 pointer-events-none transition-opacity duration-1000 -z-10"
         style={{
           background: isCelebrationActive
-            ? 'radial-gradient(ellipse at 50% 45%, rgba(255, 215, 0, 0.18), rgba(255, 143, 177, 0.12), transparent 70%)'
+            ? 'radial-gradient(ellipse at 50% 45%, rgba(255, 215, 0, 0.22), rgba(255, 143, 177, 0.15), rgba(228, 218, 255, 0.1), transparent 75%)'
             : ambientGlow > 0.3
             ? `radial-gradient(ellipse at 50% 50%, rgba(255, 180, 50, ${0.15 * ambientGlow}), transparent 65%)`
             : 'radial-gradient(ellipse at 50% 50%, rgba(61, 35, 64, 0.08), transparent 60%)',
         }}
       />
 
-      {/* Floating Background Balloons */}
+      {/* ✨ MAGICAL ROTATING SUNBURST AURA BEHIND CAKE */}
+      {isCelebrationActive && (
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] sm:w-[650px] h-[520px] sm:h-[650px] pointer-events-none -z-10 overflow-hidden">
+          <div
+            className="w-full h-full magical-aura opacity-35"
+            style={{
+              background: 'conic-gradient(from 0deg, transparent 0deg, rgba(255, 215, 0, 0.35) 15deg, transparent 35deg, rgba(255, 143, 177, 0.3) 55deg, transparent 75deg, rgba(255, 215, 0, 0.35) 95deg, transparent 115deg, rgba(201, 182, 255, 0.3) 135deg, transparent 155deg, rgba(255, 215, 0, 0.35) 175deg, transparent 195deg, rgba(255, 143, 177, 0.3) 215deg, transparent 235deg, rgba(255, 215, 0, 0.35) 255deg, transparent 275deg, rgba(201, 182, 255, 0.3) 295deg, transparent 315deg, rgba(255, 215, 0, 0.35) 335deg, transparent 360deg)',
+              maskImage: 'radial-gradient(circle, black 25%, transparent 70%)',
+              WebkitMaskImage: 'radial-gradient(circle, black 25%, transparent 70%)',
+            }}
+          />
+        </div>
+      )}
+
+      {/* 🎈 ABUNDANT CELEBRATION BALLOONS (18 Dynamic Balloons) */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
-        {[
-          { id: 1, left: '6%',  dur: '14s', delay: '0s',  color: '#FFB8CE', size: 36, heart: false },
-          { id: 2, left: '15%', dur: '17s', delay: '3s',  color: '#E4DAFF', size: 42, heart: true },
-          { id: 3, left: '25%', dur: '13s', delay: '6s',  color: '#FFD700', size: 34, heart: false },
-          { id: 4, left: '75%', dur: '15s', delay: '1s',  color: '#FFDCC6', size: 40, heart: false },
-          { id: 5, left: '85%', dur: '16s', delay: '4s',  color: '#FF8FB1', size: 44, heart: true },
-          { id: 6, left: '93%', dur: '12s', delay: '2s',  color: '#C9B6FF', size: 34, heart: false },
-        ].map((b) => (
+        {CELEBRATION_BALLOONS.map((b) => (
           <div
             key={b.id}
-            className={`absolute ${isCelebrationActive ? 'balloon-rising' : 'balloon-sway'}`}
+            className={`absolute ${isCelebrationActive ? 'balloon-ascend' : 'balloon-sway'}`}
             style={{
               left: b.left,
-              bottom: isCelebrationActive ? '-10%' : '15%',
-              '--dur': isCelebrationActive ? '8s' : b.dur,
-              '--delay': b.delay,
-              opacity: isCelebrationActive ? 0.9 : 0.45,
+              bottom: isCelebrationActive ? '-12%' : '12%',
+              '--dur': isCelebrationActive ? b.dur : '7s',
+              '--delay': isCelebrationActive ? b.delay : `${b.id * 0.4}s`,
+              '--sway': `${b.sway}px`,
+              '--rot': `${b.rot}deg`,
+              opacity: isCelebrationActive ? 0.95 : 0.45,
             }}
           >
             <svg width={b.size} height={b.size * 1.3} viewBox="0 0 40 55" fill="none">
@@ -383,7 +445,7 @@ export default function BirthdayCake() {
                 <path
                   d="M20 38 C10 28 4 20 4 13 C4 6 10 2 16 4 C18 5 19 7 20 9 C21 7 22 5 24 4 C30 2 36 6 36 13 C36 20 30 28 20 38 Z"
                   fill={b.color}
-                  filter="drop-shadow(0 4px 10px rgba(0,0,0,0.08))"
+                  filter="drop-shadow(0 4px 12px rgba(196,61,114,0.18))"
                 />
               ) : (
                 <ellipse
@@ -392,15 +454,44 @@ export default function BirthdayCake() {
                   rx="16"
                   ry="20"
                   fill={b.color}
-                  filter="drop-shadow(0 4px 10px rgba(0,0,0,0.08))"
+                  filter="drop-shadow(0 4px 12px rgba(0,0,0,0.1))"
                 />
               )}
-              <path d="M20 40 Q22 46 19 54" stroke="#D1B8CE" strokeWidth="1.2" strokeLinecap="round" fill="none" />
-              <ellipse cx="14" cy="14" rx="4" ry="7" fill="white" fillOpacity="0.45" transform="rotate(-25 14 14)" />
+              {/* Balloon knot */}
+              <polygon points="18,40 22,40 20,43" fill={b.color} />
+              {/* Glossy highlight */}
+              <ellipse cx="14" cy="14" rx="4" ry="7" fill="white" fillOpacity="0.5" transform="rotate(-25 14 14)" />
+              {/* String */}
+              <path d="M20 42 Q23 48 18 55" stroke="#CBB3F5" strokeWidth="1.2" strokeLinecap="round" fill="none" />
             </svg>
           </div>
         ))}
       </div>
+
+      {/* ✨ FAIRYDUST SPARKLES & STARS CONSTELLATION */}
+      {isCelebrationActive && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden -z-5">
+          {FAIRY_SPARKLES.map((sp) => (
+            <div
+              key={sp.id}
+              className="absolute fairy-sparkle"
+              style={{
+                left: sp.left,
+                top: sp.top,
+                fontSize: `${sp.size}px`,
+                color: sp.color,
+                '--dur': sp.dur,
+                '--delay': sp.delay,
+                '--drift-x': `${(sp.id % 2 === 0 ? 1 : -1) * (15 + (sp.id % 5) * 4)}px`,
+                '--max-o': 0.95,
+                filter: 'drop-shadow(0 0 6px rgba(255,215,0,0.8))',
+              }}
+            >
+              {sp.symbol}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Section Header */}
       <div className="mb-4 md:mb-6">
@@ -812,7 +903,7 @@ export default function BirthdayCake() {
               type="button"
               id="blow-mic-button"
               onClick={startMicrophoneBlow}
-              className="w-full sm:w-auto flex-1 min-h-[50px] px-6 py-3 rounded-full bg-gradient-to-r from-rosedeep to-[#9D4EDD] text-white font-bold text-base shadow-[0_10px_25px_-8px_rgba(196,61,114,0.5)] hover:shadow-[0_12px_30px_-6px_rgba(196,61,114,0.65)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2.5"
+              className="w-full sm:w-auto flex-1 min-h-[50px] px-6 py-3 rounded-full bg-gradient-to-r from-rosedeep via-purple-600 to-amber-500 text-white font-bold text-base shadow-[0_10px_25px_-8px_rgba(196,61,114,0.5)] hover:shadow-[0_14px_32px_-6px_rgba(196,61,114,0.65)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2.5"
             >
               <Mic size={20} className="animate-bounce" />
               <span>Blow Out the Candles 🎤</span>
@@ -836,7 +927,7 @@ export default function BirthdayCake() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col items-center gap-3 p-4 rounded-3xl glass border border-blush max-w-md w-full"
+            className="flex flex-col items-center gap-3 p-4 rounded-3xl glass border border-blush max-w-md w-full shadow-lg"
           >
             <div className="flex items-center gap-3">
               <span className="relative flex h-3.5 w-3.5">
@@ -888,7 +979,7 @@ export default function BirthdayCake() {
             </div>
             <div className="w-48 h-1.5 bg-blush/40 rounded-full overflow-hidden">
               <div
-                className="h-full bg-rosedeep rounded-full transition-all duration-100"
+                className="h-full bg-gradient-to-r from-rosedeep to-amber-400 rounded-full transition-all duration-100"
                 style={{ width: `${Math.min(100, (extinguishTime / 5.6) * 100)}%` }}
               />
             </div>
@@ -900,7 +991,7 @@ export default function BirthdayCake() {
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="font-script text-2xl sm:text-3xl text-mauve"
+            className="font-script text-2xl sm:text-3xl text-mauve animate-pulse"
           >
             All candles are out... ✨
           </motion.p>
@@ -928,7 +1019,7 @@ export default function BirthdayCake() {
                   initial={{ opacity: 0, scale: 0.4, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   transition={{ type: 'spring', damping: 12, stiffness: 200 }}
-                  className="text-3xl sm:text-5xl md:text-6xl text-plum"
+                  className="text-3xl sm:text-5xl md:text-6xl text-plum drop-shadow-sm"
                 >
                   HAPPY
                 </motion.span>
@@ -939,7 +1030,7 @@ export default function BirthdayCake() {
                   initial={{ opacity: 0, scale: 0.4, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   transition={{ type: 'spring', damping: 12, stiffness: 200 }}
-                  className="text-3xl sm:text-5xl md:text-6xl text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-rosedeep to-purple-600 font-extrabold"
+                  className="text-3xl sm:text-5xl md:text-6xl text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-rosedeep to-purple-600 font-extrabold filter drop-shadow"
                 >
                   23RD
                 </motion.span>
@@ -950,7 +1041,7 @@ export default function BirthdayCake() {
                   initial={{ opacity: 0, scale: 0.4, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   transition={{ type: 'spring', damping: 12, stiffness: 200 }}
-                  className="text-3xl sm:text-5xl md:text-6xl text-plum"
+                  className="text-3xl sm:text-5xl md:text-6xl text-plum drop-shadow-sm"
                 >
                   BIRTHDAY
                 </motion.span>
@@ -965,11 +1056,11 @@ export default function BirthdayCake() {
                 transition={{ type: 'spring', damping: 10, stiffness: 180 }}
                 className="pt-1"
               >
-                <h1 className="font-display font-extrabold text-4xl sm:text-6xl md:text-7xl text-rosedeep tracking-normal drop-shadow-sm flex items-center justify-center gap-2 sm:gap-4">
+                <h1 className="font-display font-extrabold text-4xl sm:text-6xl md:text-7xl text-rosedeep tracking-normal drop-shadow-md flex items-center justify-center gap-2 sm:gap-4">
                   <span>SHRAVANI</span>
                   <motion.span
-                    animate={{ scale: [1, 1.25, 1] }}
-                    transition={{ repeat: Infinity, duration: 1.6 }}
+                    animate={{ scale: [1, 1.3, 1] }}
+                    transition={{ repeat: Infinity, duration: 1.4 }}
                     className="inline-block text-rose-500 text-3xl sm:text-5xl md:text-6xl"
                   >
                     ❤️
@@ -984,11 +1075,11 @@ export default function BirthdayCake() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.9, delay: 0.2 }}
-                className="w-full max-w-2xl mt-4 p-6 sm:p-8 rounded-3xl paper border border-white/80 shadow-[0_20px_50px_-20px_rgba(196,61,114,0.3)] space-y-4"
+                className="w-full max-w-2xl mt-4 p-6 sm:p-8 rounded-3xl paper border border-white/80 shadow-[0_20px_50px_-20px_rgba(196,61,114,0.35)] space-y-4"
               >
                 <div className="flex justify-center">
-                  <span className="p-2.5 rounded-full bg-blush/60 text-rosedeep shadow-inner">
-                    <Heart size={24} fill="#C43D72" />
+                  <span className="p-3 rounded-full bg-gradient-to-br from-blush to-petal/50 text-rosedeep shadow-inner">
+                    <Heart size={26} fill="#C43D72" className="animate-pulse" />
                   </span>
                 </div>
 
@@ -1001,7 +1092,18 @@ export default function BirthdayCake() {
                 </p>
 
                 {/* Celebration Action Toolbar */}
-                <div className="pt-3 flex flex-wrap items-center justify-center gap-3">
+                <div className="pt-4 flex flex-wrap items-center justify-center gap-3">
+                  {/* Cast Magic Sparkles Button */}
+                  <button
+                    type="button"
+                    onClick={castMagicSparkles}
+                    className="min-h-[46px] px-5 py-2.5 rounded-full bg-gradient-to-r from-amber-400 via-pink-500 to-purple-500 text-white text-sm font-bold flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-md"
+                  >
+                    <Wand2 size={16} className="animate-spin [animation-duration:6s]" />
+                    <span>Magic Sparkles 🪄</span>
+                  </button>
+
+                  {/* Relight candles button */}
                   <button
                     type="button"
                     onClick={handleReset}
@@ -1011,15 +1113,7 @@ export default function BirthdayCake() {
                     <span>Relight Candles 🕯️</span>
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={() => grandCelebration()}
-                    className="min-h-[46px] px-5 py-2.5 rounded-full bg-gradient-to-r from-rosedeep to-petal text-white text-sm font-bold flex items-center gap-2 hover:opacity-95 active:scale-95 transition-all shadow-md"
-                  >
-                    <Sparkles size={16} />
-                    <span>More Confetti! 🎉</span>
-                  </button>
-
+                  {/* Music Play/Pause Toggle */}
                   <button
                     type="button"
                     onClick={() => {

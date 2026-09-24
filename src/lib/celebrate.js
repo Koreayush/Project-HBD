@@ -41,13 +41,14 @@ export function grandCelebration() {
   // 1. Center cake burst
   try {
     confetti({
-      particleCount: 70,
+      particleCount: 85,
       spread: 360,
-      startVelocity: 32,
+      startVelocity: 35,
       origin: { x: 0.5, y: 0.52 },
       colors: confettiColors,
-      ticks: 260,
+      ticks: 280,
       zIndex: 250,
+      ...(s.length ? { shapes: s } : {}),
     })
   } catch { /* ignore */ }
 
@@ -55,23 +56,23 @@ export function grandCelebration() {
   setTimeout(() => {
     try {
       confetti({
-        particleCount: 65,
+        particleCount: 80,
         angle: 60,
-        spread: 65,
-        startVelocity: 48,
-        origin: { x: 0.05, y: 0.7 },
+        spread: 75,
+        startVelocity: 52,
+        origin: { x: 0.05, y: 0.72 },
         colors: confettiColors,
-        ticks: 260,
+        ticks: 280,
         zIndex: 250,
       })
       confetti({
-        particleCount: 65,
+        particleCount: 80,
         angle: 120,
-        spread: 65,
-        startVelocity: 48,
-        origin: { x: 0.95, y: 0.7 },
+        spread: 75,
+        startVelocity: 52,
+        origin: { x: 0.95, y: 0.72 },
         colors: confettiColors,
-        ticks: 260,
+        ticks: 280,
         zIndex: 250,
       })
     } catch { /* ignore */ }
@@ -81,21 +82,39 @@ export function grandCelebration() {
   setTimeout(() => {
     try {
       confetti({
-        particleCount: 50,
-        spread: 100,
-        startVelocity: 25,
-        origin: { x: 0.5, y: 0.15 },
-        gravity: 0.7,
+        particleCount: 65,
+        spread: 120,
+        startVelocity: 28,
+        origin: { x: 0.5, y: 0.1 },
+        gravity: 0.65,
         colors: confettiColors,
-        ticks: 300,
+        ticks: 320,
         zIndex: 250,
         ...(s.length ? { shapes: s } : {}),
       })
     } catch { /* ignore */ }
-  }, 300)
+  }, 350)
 
-  // 4. Ambient floating celebration for a few seconds
-  const end = Date.now() + 3800
+  // 4. Secondary upward fountain of gold & hearts
+  setTimeout(() => {
+    try {
+      confetti({
+        particleCount: 50,
+        angle: 90,
+        spread: 100,
+        startVelocity: 42,
+        origin: { x: 0.5, y: 0.8 },
+        colors: ['#ffd700', '#ff8fb1', '#ffffff', '#c9b6ff'],
+        gravity: 0.8,
+        ticks: 260,
+        zIndex: 250,
+        ...(s.length ? { shapes: s } : {}),
+      })
+    } catch { /* ignore */ }
+  }, 850)
+
+  // 5. Sustained ambient magical confetti & stars floating gently (7 seconds)
+  const end = Date.now() + 7500
   const interval = setInterval(() => {
     if (Date.now() > end) {
       clearInterval(interval)
@@ -103,21 +122,22 @@ export function grandCelebration() {
     }
     try {
       confetti({
-        particleCount: 3,
-        spread: 90,
-        origin: { x: Math.random() * 0.8 + 0.1, y: 0.2 },
+        particleCount: 4,
+        spread: 100,
+        origin: { x: Math.random() * 0.85 + 0.08, y: 0.15 },
         colors: confettiColors,
-        gravity: 0.5,
-        scalar: 1.2,
-        ticks: 200,
+        gravity: 0.45,
+        scalar: 1.3,
+        ticks: 220,
         zIndex: 240,
-        ...(s.length && Math.random() < 0.4 ? { shapes: s } : {}),
+        ...(s.length && Math.random() < 0.6 ? { shapes: s } : {}),
       })
     } catch { /* ignore */ }
-  }, 220)
+  }, 240)
 
   return () => clearInterval(interval)
 }
+
 
 // A celebration that starts lively and gradually calms down.
 export function celebrate(ms = 4500) {

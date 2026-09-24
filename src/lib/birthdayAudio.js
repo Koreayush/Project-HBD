@@ -157,3 +157,42 @@ class MusicBoxPlayer {
 }
 
 export const musicBoxSynth = new MusicBoxPlayer()
+
+// Magical fairy dust / wand glissando chime played when candles go out
+export function playFairyChime() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext
+    if (!AudioCtx) return
+    const ctx = new AudioCtx()
+    if (ctx.state === 'suspended') ctx.resume()
+    const now = ctx.currentTime
+
+    // Ethereal celestial notes (ascending arpeggio glissando)
+    const notes = [
+      { f: 523.25, d: 0.00, dur: 0.9 }, // C5
+      { f: 659.25, d: 0.06, dur: 0.9 }, // E5
+      { f: 783.99, d: 0.12, dur: 1.0 }, // G5
+      { f: 987.77, d: 0.18, dur: 1.0 }, // B5
+      { f: 1046.50, d: 0.24, dur: 1.1 }, // C6
+      { f: 1318.51, d: 0.30, dur: 1.2 }, // E6
+      { f: 1567.98, d: 0.36, dur: 1.3 }, // G6
+      { f: 2093.00, d: 0.42, dur: 1.6 }, // C7
+    ]
+
+    notes.forEach((n) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(n.f, now + n.d)
+
+      gain.gain.setValueAtTime(0.0001, now + n.d)
+      gain.gain.linearRampToValueAtTime(0.22, now + n.d + 0.015)
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + n.d + n.dur)
+
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(now + n.d)
+      osc.stop(now + n.d + n.dur)
+    })
+  } catch { /* ignore */ }
+}
